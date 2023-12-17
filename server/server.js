@@ -1,9 +1,9 @@
 const express = require('express');
 const app = express();
-
+const PORT = process.env.PORT || 5001;
 const todos = require('./routes/todos.router.js');
+const bodyParser = require('body-parser');
 
-let PORT = process.env.PORT || 5001;
 
 // Do not modify this!
 if (process.env.NODE_ENV == 'test') {
@@ -12,7 +12,10 @@ if (process.env.NODE_ENV == 'test') {
 
 app.use(express.static('./server/public'));
 app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
+//ROUTE
 app.use('/todos', todos);
 
 app.listen(PORT, () => {
