@@ -1,98 +1,105 @@
 console.log('JS is sourced!');
+// const taskData = 
+//                 {id: " ",
+//                 text: " ",
+//                 isComplete: " "};
+
 
 function onReady() {
-    getTaskItems()
+    getHandler();
+
 }
 
-function getTaskItems() {
-    console.log("in getTaskItems");
-    //axios call to server to GET tasks
-    axios
-        .get("/todos")
-        .then((response) => {
-            console.log("GET response:", resonse.data)
-            renderTasks(response.data);
-        })
-        .catch((error) => {
-            console.log("Task GET failed")
-            console.log(error);
-        })
-} //end getTaskItems
-
-function submitTaskItem(event) {
+function submitTaskButton(event){
     event.preventDefault();
-    console.log("in submitTaskItem");
+    const taskData = document.getElementById("textInput").value;
+    console.log("added task:", taskData);
+    const newTask = {text: taskData, iscomplete: false}
 
-    //input value from input task item field
-    let taskToAdd = {};
-    taskToAdd.item = document.getElementById("toDoTextInput").value;
-  
-    console.log("Tasks to add", taskToAdd);
-
-    //axios call to server to POST koalas
-
-    axios({
-        method: 'POST',
-        url: "/todos",
-        data: taskToAdd
-    })
-        .then((response) => {
-            console.log("in POST request", response.data);
-            document.getElementById("toDoTextInput").value = "";
-            getTaskItems();
-        })
-        .catch((error) => {
-            console.log("POST ERROR!");
-            console.log(error);
-        })
+    postHandler(newTask);
+    document.getElementById("textInput").value = "";
 }
 
-function renderTasks(tasks) {
-    const viewTasks = document.getElementById("viewTasks");
-    console.log("render Tasks:", tasks);
-    viewTasks.innerHTML = "";
-
-    tasks.forEach((task) => {
-        viewTasks.innerHTML += `
-        <tr>
-        <td>${task.item}</td>
-        <td><button onClick="taskisComplete(event, true)"> Complete </button></td>
-        <td><button onClick="taskIsDeleted(event)">Delete</button></td>
-        </tr>
-        `;
-    })
-}
-
-function taskisComplete(event) {
+// DELETE button deletes a task from the DOM and database
+function deleteButton(event){
     event.preventDefault();
+    //console.log("delete event incoming", event.target)
     let taskId = event.target.closest("tr").dataset.id;
 
     axios
-        .put(`/todos/${taskId}`)
-        .then((response) => {
-            console.log("Id is Complete!", taskId);
-            getTaskItems();
-        })
-        .catch((error) => {
-            console.log("error", error)
-        });
+    .delete(`/todos/${taskId}`)
+    .then(()=>{
+        console.log("task is deleted", taskId);
+        getHandler();
+    })
+    .catch((error)=> {
+        console.log("could not delete", error)
+    })
 }
 
-// function taskIsDeleted(event)
-// event.preventDefault();
-// console.log("delete event", event.target);
+// POST request - send data TO the server taskData = id, text, isComplete
+function postHandler(taskData){
+    axios
+    .post("/todos", taskData)
+    .then((response)=>{
+        console.log("in postHandler")
+        getHandler()
+    })
+    .catch((error)=>{
+        console.log("error in POST", error)
+    })
+}
 
-// const taskId = event.target.closest("tr").dataset.id;
+//GET handler -- server responds with sample data and then client logs in console.
+function getHandler(){
+    console.log("in gethandler")
 
-// axios
-//     .delete(`/todos/${taskId}`)
-//     .then((response) => {
-//         console.log("task is deleted", taskId);
-//         getTaskItems();
-//     })
-//     .catch((error) => {
-//         console.log("Could not delete", error)
-//         resizeBy.sendStatus(500);
-//     })
+    //axios - used to call to the server to GET the task data
+    axios
+    .get("/todos")
+    .then((response)=>{
+        console.log("GET response", response.data)
+        renderTasks(response.data)
+    })
+    .catch((error)=>{
+        console.log("error", error);
+    })
+}
 
+//PUT handler -- updates resources on server then server processes the request, updates the resource and sends response back to client
+function putHandler(event){
+    event.preventDefault();
+    let taskId = event.target.closest("tr").dataset.id
+    
+    let serverValue = event.target.closest("tr").dataset.iscomplete === "true";
+    console.log("is complete:", serverValue)
+    
+    
+    axios
+    .put(`/todos/${taskId}`, {isComplete: serverValue})
+    .then(()=>{
+        console.log("task is complete", taskId)
+        getHandler();
+    })
+    .catch((error)=>{
+        console.log("error in put", error)
+    })
+}
+
+//RENDER -- response made to the client and displayed in the browser (DOM)
+function renderTasks(tasks){
+    let viewTasks = document.getElementById("viewTasks");
+    
+    
+    viewTasks.innerHTML = "";
+
+   for(let item of tasks){
+        viewTasks.innerHTML += `
+       <tr data-id="${item.id} data-iscomplete= ${item.isComplete} data-testid="toDoItem"> 
+        <td>${item.text}</td>
+        <td><button onclick="putHandler(event)">${item.isComplete}</button></td>
+        <td><button onclick="deleteButton(event)">Delete</button></td>
+        </tr>` 
+    };
+}
 onReady();
