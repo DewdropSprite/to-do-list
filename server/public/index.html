@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,41 +9,41 @@
   <script defer src="./scripts/client.js"></script>
   <title>SQL TO-DO List</title>
 </head>
+
 <body>
   <header>
     <h1>SQL TO-DO List</h1>
   </header>
-  <section id="addToDoItem">
+  <section>
     <h2>Add a To-Do Item</h2>
-    <input data-testid="toDoTextInput" type = "text" id="toDoTextInput" value = "" placeholder = "To-Do Item">
-    <input type ="text" id="isComplete" placeholder = "completed">
-    <button data-testid="submitButton" type = "button" id="submitButton" onclick = "submitTaskItem(event)">Submit</button>
   </section>
-  <section id = "toDoTaskList">
+  <form>
+    <input data-testid="toDoTextInput" type="text" id="textInput" value="" placeholder="To-Do Item">
+    <button data-testid="submitButton" type="button" id="submitButton" value="" onclick="submitTaskButton(event)">Submit</button>
+  </form>
+
+  <section id="toDoTaskList">
     <h2>Task List</h2>
     <table>
       <thead>
         <tr>
-          <th data-testid="toDoItem" >Task</th>
-          <th data-testid="toDoItem" >Complete?</th>
-          <th data-testid="toDoItem" >Mark Completed</th>
-          <th data-testid="toDoItem" >Delete Task</th>
+          <th> Task Id</th>
+          <th data-testid="toDoItem">Task</th>
+          <th data-testid="toDoItem">Complete?</th>
+          <th> Mark Complete </th>
+          <th data-testid="toDoItem">Delete Task</th>
         </tr>
       </thead>
-      <tbody id = "viewTasks">
+      <tbody id="viewTasks">
+
       </tbody>
     </table>
   </section>
 
+
 </body>
+
 </html>
 
 
 
-The input you use to collect "to-do text" user input must have:
-data-testid="toDoTextInput"
-The button that a user clicks to "create" a new to-do must have:
-data-testid="submitButton"
-Each rendered to-do item must have:
-data-testid="toDoItem"
-It doesn't matter what HTML element you choose to use to represent a single to-do item, but it must have this attribute applied. Examples:
