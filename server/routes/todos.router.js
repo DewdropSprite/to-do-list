@@ -1,5 +1,6 @@
-const taskRouter = require('express').Router();
-const pool = require('../modules/pool');
+const express = require('express');
+const taskRouter = express.Router();
+const pool = require('../modules/pool.js');
 
 //GET
 
@@ -8,8 +9,7 @@ taskRouter.get('/', (req, res) => {
     const queryText = `SELECT * FROM "todos";`
 
     //send query
-    pool
-        .query(queryText)
+    pool.query(queryText)
 
         //send back results.rows
         .then((result) => {
@@ -23,31 +23,30 @@ taskRouter.get('/', (req, res) => {
 
 //POST
 
-taskRouter
-.post('/', (req, res) => {
+taskRouter.post('/', (req, res) => {
     //new task will be req.body
     console.log("req.body:", req.body);
     let incomingTask = req.body
-    // if (incomingTask.isComplete === "true") {
-    //     completedTask = "Complete"
-    // }
-    // else {
-    //     completedTask = "Not Complete"
-    // }
-    // console.log("new task:", incomingTask);
+    let completedTask
+    if (incomingTask.isComplete === "true") {
+        completedTask = true
+    }
+    else {
+        completedTask = false
+    }
+    console.log("new task:", incomingTask);
 
     //add new task to table on DOM
     const queryText =
         `INSERT INTO "todos" ("text","isComplete")
-VALUES($1, $2);`
+                    VALUES($1, $2);`
 
     //set queryParams for queryText
 
-    const queryParams = [incomingTask.text, incomingTask.isComplete]
+    const queryParams = [incomingTask.text, completedTask]
 
     //send queryText and queryParams to DB
-    pool
-        .query(queryText, queryParams)
+    pool.query(queryText, queryParams)
 
         //then send created status
         .then((result) => {
@@ -65,19 +64,15 @@ taskRouter.put('/:id', (req,res)=>{
     let taskId = req.params.id
     console.log("task id:", taskId)
    
-    let isComplete = req.body.isComplete
-    console.log("Is the task complete?", isComplete)
+    let taskIsComplete = req.body.isComplete
+    console.log("Is the task complete?", taskIsComplete)
 
     //declare query text for UPDATE
-    let queryText;
-    const queryParams = [taskId]
+    queryText = `
+    UPDATE "todos" SET "isComplete" = false WHERE "id" = $1;`
     
-    if(isComplete === true){
-        queryText = `
-        UPDATE "todos" SET "isComplete" = false WHERE "id" = $1;`;}
-        else{
-            queryText = `UPDATE "todos" SET "isComplete" = true WHERE "id" = $1;`;}
-        
+    const queryParams = [taskId, taskIsComplete]
+            
     
     pool.query(queryText, queryParams)
 
@@ -98,7 +93,7 @@ taskRouter.delete('/:id', (req, res) => {
     console.log("Deleted task:", taskComplete);
 
     // queryText for DELETE
-    const queryText = `DELETE FROM "todos" WHERE "id"=$1;`
+    const queryText = `DELETE * FROM "todos" WHERE "id"=$1;`
     // queryParams for DELETE
     const queryParams = [taskComplete]
 

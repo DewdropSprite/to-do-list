@@ -1,8 +1,8 @@
 console.log('JS is sourced!');
-// const taskData = 
-//                 {id: " ",
-//                 text: " ",
-//                 isComplete: " "};
+const newTask =[
+                {id: " ",
+                text: " ",
+                isComplete: " "}]
 
 
 function onReady() {
@@ -10,96 +10,103 @@ function onReady() {
 
 }
 
-function submitTaskButton(event){
+function submitTaskButton(event) {
     event.preventDefault();
     const taskData = document.getElementById("textInput").value;
     console.log("added task:", taskData);
-    const newTask = {text: taskData, iscomplete: false}
+    const newTask = { id: " ", text: taskData, iscomplete: false }
+    document.getElementById("textInput").value = "";
 
     postHandler(newTask);
-    document.getElementById("textInput").value = "";
+    getHandler();
 }
 
 // DELETE button deletes a task from the DOM and database
-function deleteButton(event){
+function deleteButton(event) {
     event.preventDefault();
     //console.log("delete event incoming", event.target)
     let taskId = event.target.closest("tr").dataset.id;
 
     axios
-    .delete(`/todos/${taskId}`)
-    .then(()=>{
-        console.log("task is deleted", taskId);
-        getHandler();
-    })
-    .catch((error)=> {
-        console.log("could not delete", error)
-    })
+        .delete(`/todos/${taskId}`)
+        .then(() => {
+            console.log("task is deleted", taskId);
+            getHandler();
+        })
+        .catch((error) => {
+            console.log("could not delete", error)
+        })
 }
 
 // POST request - send data TO the server taskData = id, text, isComplete
-function postHandler(taskData){
+function postHandler(taskData) {
     axios
-    .post("/todos", taskData)
-    .then((response)=>{
-        console.log("in postHandler")
-        getHandler()
-    })
-    .catch((error)=>{
-        console.log("error in POST", error)
-    })
+        .post("/todos", taskData)
+        .then((response) => {
+            console.log("in postHandler")
+            getHandler()
+        })
+        .catch((error) => {
+            console.log("error in POST", error)
+        })
 }
 
 //GET handler -- server responds with sample data and then client logs in console.
-function getHandler(){
+function getHandler() {
     console.log("in gethandler")
 
     //axios - used to call to the server to GET the task data
     axios
-    .get("/todos")
-    .then((response)=>{
-        console.log("GET response", response.data)
-        renderTasks(response.data)
-    })
-    .catch((error)=>{
-        console.log("error", error);
-    })
+        .get("/todos")
+        .then((response) => {
+            console.log("GET response", response.data)
+            renderTasks(response.data)
+        })
+        .catch((error) => {
+            console.log("error", error);
+        })
 }
 
 //PUT handler -- updates resources on server then server processes the request, updates the resource and sends response back to client
-function putHandler(event){
+function putHandler(event) {
     event.preventDefault();
     let taskId = event.target.closest("tr").dataset.id
-    
-    let serverValue = event.target.closest("tr").dataset.iscomplete === "true";
+
+    let serverValue = event.target.closest("tr").dataset.isComplete === "true";
     console.log("is complete:", serverValue)
-    
-    
+
+
     axios
-    .put(`/todos/${taskId}`, {isComplete: serverValue})
-    .then(()=>{
-        console.log("task is complete", taskId)
-        getHandler();
-    })
-    .catch((error)=>{
-        console.log("error in put", error)
-    })
+        .put(`/todos/${taskId}`, { isComplete: serverValue })
+        .then(() => {
+            console.log("task is complete", taskId)
+            getHandler();
+        })
+        .catch((error) => {
+            console.log("error in put", error)
+        })
 }
 
 //RENDER -- response made to the client and displayed in the browser (DOM)
-function renderTasks(tasks){
+function renderTasks(tasks) {
     let viewTasks = document.getElementById("viewTasks");
-    
-    
-    viewTasks.innerHTML = "";
 
-   for(let item of tasks){
+    viewTasks.innerHTML = "";
+    for (let item of tasks) {
         viewTasks.innerHTML += `
-       <tr data-id="${item.id} data-iscomplete= ${item.isComplete} data-testid="toDoItem"> 
-        <td>${item.text}</td>
-        <td><button onclick="putHandler(event)">${item.isComplete}</button></td>
+       <tr data-id="${item.id} data-text="${item.text} data-iscomplete= ${item.isComplete} data-testid="toDoItem"> 
+        <td>${item.id}</td>
+        <td>${item.text}
+        <td>${item.isComplete}
+        <td><button onclick="putHandler(event)">Mark Complete</button></td>
         <td><button onclick="deleteButton(event)">Delete</button></td>
-        </tr>` 
+        </tr>`
     };
 }
 onReady();
+
+{/* <th> Task Id</th>
+<th data-testid="toDoItem">Task</th>
+<th data-testid="toDoItem">Complete?</th>
+<th> Mark Complete </th>
+<th data-testid="toDoItem">Delete Task</th> */}
