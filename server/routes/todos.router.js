@@ -1,14 +1,12 @@
-const express = require('express');
-const taskRouter = express.Router();
-const pool = require('../modules/pool.js');
+const router = require('express').Router();
+const pool = require('../modules/pool');
 
-//GET
-
-taskRouter.get('/', (req, res) => {
+//SELECT (aka GET)
+router.get('/', (req, res) => {
     //declare queryText - select ALL task data
-    const queryText = `SELECT * FROM "todos";`
-
-    //send query
+    const queryText = `SELECT * FROM "todos"
+                        ORDER BY "id";`
+    //send query - Send SQL text with pool send from DB to client
     pool.query(queryText)
 
         //send back results.rows
@@ -17,100 +15,93 @@ taskRouter.get('/', (req, res) => {
         })
         .catch((error) => {
             console.log("taskRouter.get is not working", error)
+            res.sendStatus(500);
         })
 })
 
+//Insert (aka POST) task to send data to database
 
-//POST
-
-taskRouter.post('/', (req, res) => {
+router.post('/', (req, res) => {
+    //Store values in array for parameterization !! THIS IS A REQUIREMENT 
     //new task will be req.body
-    console.log("req.body:", req.body);
-    let incomingTask = req.body
-    let completedTask
-    if (incomingTask.isComplete === "true") {
-        completedTask = true
-    }
-    else {
-        completedTask = false
-    }
-    console.log("new task:", incomingTask);
+    const incomingTask = [req.body.text];
+    console.log("incoming text", incomingTask[0])
+
 
     //add new task to table on DOM
     const queryText =
-        `INSERT INTO "todos" ("text","isComplete")
-                    VALUES($1, $2);`
-
-    //set queryParams for queryText
-
-    const queryParams = [incomingTask.text, completedTask]
+        `INSERT INTO "todos" ("text")
+        VALUES($1);`
 
     //send queryText and queryParams to DB
-    pool.query(queryText, queryParams)
+    pool.query(queryText, incomingTask)
 
         //then send created status
         .then((result) => {
             res.sendStatus(201)
         })
         .catch((error) => {
-            console.log("Theres an error in taskRouter.post", error)
+            console.log("Theres an error in router.post", error)
+            res.sendStatus(500);
         })
+    //set queryParams for queryText
+
+    // const queryParams = [incomingTask.text, completedTask]
 })
-
-//PUT
-//When put request is made, use task id to UPDATE "isComplete" to true
-taskRouter.put('/:id', (req,res)=>{
-    //get the task ID
-    let taskId = req.params.id
-    console.log("task id:", taskId)
-   
-    let taskIsComplete = req.body.isComplete
-    console.log("Is the task complete?", taskIsComplete)
-
-    //declare query text for UPDATE
-    queryText = `
-    UPDATE "todos" SET "isComplete" = false WHERE "id" = $1;`
-    
-    const queryParams = [taskId, taskIsComplete]
-            
-    
-    pool.query(queryText, queryParams)
-
-    //then send ok status
-    .then(()=>{
-        res.sendStatus(200)
-    })
-    .catch((error)=>{
-        console.log("there's an error in taskRouter.put:", error)
-    })
-})
-
 
 // DELETE
-taskRouter.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
     // get id param
     let taskComplete = req.params.id
     console.log("Deleted task:", taskComplete);
 
     // queryText for DELETE
-    const queryText = `DELETE * FROM "todos" WHERE "id"=$1;`
-    // queryParams for DELETE
+    const queryText = `DELETE FROM "todos" 
+                        WHERE "id"=$1;`
+    // queryParams for DELETE because can't use pool.query without the array
     const queryParams = [taskComplete]
 
     // send DELETE query to DB
     pool.query(queryText, queryParams)
 
-    // then sendStatus
-    .then(() => {
-        console.log("send status");
-        res.sendStatus(200)
-    }) .catch((error) => {
-        console.log("error in taskRouter.delete", error);
-    })
+        // then sendStatus
+        .then((result) => {
+            console.log("send status");
+            res.sendStatus(201)
+        }).catch((error) => {
+            res.sendStatus(500)
+            console.log("error in taskRouter.delete", error);
+        })
+})
+
+
+//PUT
+//When put request is made, use task id to UPDATE "isComplete" to true
+router.put('/:id', (req, res) => {
+    // create queryParam to take in taskID and make an array
+    let queryParams = [req.params.id]
+
+    //declare query text for UPDATE
+    const queryText = `
+    UPDATE "todos"
+    SET "isComplete" = not "isComplete"
+    WHERE "id" = $1;
+    `
+    pool.query(queryText, queryParams)
+        //then send ok status
+        .then(() => {
+            res.sendStatus(200)
+        })
+        .catch((error) => {
+            res.send(500)
+            console.log("there's an error in taskRouter.put:", error)
+        })
 })
 
 
 
 
 
-module.exports = taskRouter;
+
+
+module.exports = router;
