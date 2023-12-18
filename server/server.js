@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 5001;
+
 const todos = require('./routes/todos.router.js');
-const bodyParser = require('body-parser');
+
+const PORT = process.env.PORT || 5001;
 
 
 // Do not modify this!
@@ -11,9 +12,9 @@ if (process.env.NODE_ENV == 'test') {
 }
 
 app.use(express.static('./server/public'));
+//express.json = MINIMUM REQUIREMENT FOR AXIOS.. also when testing in postman key and value have to be in ""
 app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}))
 
 //ROUTE
 app.use('/todos', todos);
