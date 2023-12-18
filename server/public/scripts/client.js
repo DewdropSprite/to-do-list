@@ -1,8 +1,8 @@
 console.log('JS is sourced!');
-const newTask =[
-                {id: " ",
-                text: " ",
-                isComplete: " "}]
+// const newTask =[
+//                 {id: " ",
+//                 text: " ",
+//                 isComplete: " "}]
 
 
 function onReady() {
@@ -22,15 +22,14 @@ function submitTaskButton(event) {
 }
 
 // DELETE button deletes a task from the DOM and database
-function deleteButton(event) {
+function deleteButton(event, id) {
     event.preventDefault();
-    //console.log("delete event incoming", event.target)
-    let taskId = event.target.closest("tr").dataset.id;
+    console.log("delete event incoming", event.target, id)
 
     axios
-        .delete(`/todos/${taskId}`)
-        .then(() => {
-            console.log("task is deleted", taskId);
+        .delete(`/todos/${id}`)
+        .then((response) => {
+            console.log("task is deleted", id);
             getHandler();
         })
         .catch((error) => {
@@ -59,27 +58,25 @@ function getHandler() {
     axios
         .get("/todos")
         .then((response) => {
+            //response.data is where the data lives
             console.log("GET response", response.data)
             renderTasks(response.data)
         })
         .catch((error) => {
+            alert("ERROR in getHandler")
             console.log("error", error);
         })
 }
 
 //PUT handler -- updates resources on server then server processes the request, updates the resource and sends response back to client
-function putHandler(event) {
+function putHandler(event, id) {
     event.preventDefault();
-    let taskId = event.target.closest("tr").dataset.id
-
-    let serverValue = event.target.closest("tr").dataset.isComplete === "true";
-    console.log("is complete:", serverValue)
-
+    console.log("in PUT handler", event.target.id)
 
     axios
-        .put(`/todos/${taskId}`, { isComplete: serverValue })
-        .then(() => {
-            console.log("task is complete", taskId)
+        .put(`/todos/${id}`)
+        .then((response) => {
+            console.log("task is complete")
             getHandler();
         })
         .catch((error) => {
@@ -90,23 +87,23 @@ function putHandler(event) {
 //RENDER -- response made to the client and displayed in the browser (DOM)
 function renderTasks(tasks) {
     let viewTasks = document.getElementById("viewTasks");
-
+    
     viewTasks.innerHTML = "";
     for (let item of tasks) {
+        let completeButton = 'Not Complete'
+
+        if(item.isComplete === true){
+            completeButton = 'Complete'
+        }
+
         viewTasks.innerHTML += `
        <tr data-id="${item.id} data-text="${item.text} data-iscomplete= ${item.isComplete} data-testid="toDoItem"> 
         <td>${item.id}</td>
         <td>${item.text}
         <td>${item.isComplete}
-        <td><button onclick="putHandler(event)">Mark Complete</button></td>
-        <td><button onclick="deleteButton(event)">Delete</button></td>
+        <td><button onclick="putHandler(event, ${item.id})" data-testid="toDoItem">${completeButton}</button></td>
+        <td><button onclick="deleteButton(event, ${item.id})" data-testid ="deleteButton">Delete</button></td>
         </tr>`
     };
 }
 onReady();
-
-{/* <th> Task Id</th>
-<th data-testid="toDoItem">Task</th>
-<th data-testid="toDoItem">Complete?</th>
-<th> Mark Complete </th>
-<th data-testid="toDoItem">Delete Task</th> */}
